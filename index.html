@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Day on Earth — 4.5 Billion Years in 24 Hours</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#070711;--text:#e8e8f0;--dim:#7a7a99;--accent:#4a90d9;--warm:#d4a056;
+  --red:#d95050;--green:#50b878;--orange:#e08040;--purple:#9070d0;
+  --panel:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06)
+}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#333 var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.7;overflow-x:hidden}
+
+/* Fixed progress bar */
+#progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:200;background:rgba(255,255,255,.04)}
+#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--warm),var(--red));transition:width .3s ease}
+#clock-display{position:fixed;top:12px;right:24px;z-index:200;font-size:1rem;color:var(--dim);font-variant-numeric:tabular-nums;background:rgba(6,7,17,.85);padding:.4rem .9rem;border-radius:6px;border:1px solid var(--border);backdrop-filter:blur(8px)}
+#clock-display .t{color:var(--accent);font-weight:500;font-size:1.2rem}
+
+/* Slides */
+.slide{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:4rem 2rem;z-index:1;opacity:0;transform:translateY(25px);transition:opacity .7s ease,transform .7s ease}
+.slide.visible{opacity:1;transform:translateY(0)}
+.fade{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+.visible .fade{opacity:1;transform:translateY(0)}
+.visible .fade:nth-child(2){transition-delay:.1s}
+.visible .fade:nth-child(3){transition-delay:.2s}
+.visible .fade:nth-child(4){transition-delay:.3s}
+.visible .fade:nth-child(5){transition-delay:.4s}
+.visible .fade:nth-child(6){transition-delay:.5s}
+
+/* Clock time */
+.clock{font-size:clamp(4rem,14vw,9rem);font-weight:100;letter-spacing:.04em;font-variant-numeric:tabular-nums;color:var(--text);text-align:center;margin-bottom:.8rem;text-shadow:0 0 40px rgba(74,144,217,.15)}
+.clock-sub{font-size:clamp(1rem,2vw,1.3rem);color:var(--dim);text-align:center;margin-bottom:2rem;font-variant-numeric:tabular-nums}
+
+/* Typography */
+h1{font-size:clamp(3rem,8vw,6rem);font-weight:200;letter-spacing:.04em;text-align:center;margin-bottom:1.5rem}
+h2{font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:300;text-align:center;margin-bottom:.8rem}
+.era{font-size:clamp(.85rem,1.6vw,1.1rem);text-transform:uppercase;letter-spacing:.15em;text-align:center;margin-bottom:2rem;font-weight:500}
+.desc{font-size:clamp(1.1rem,2.2vw,1.4rem);color:var(--dim);text-align:center;max-width:750px;line-height:1.8}
+.desc em{color:var(--text);font-style:normal;font-weight:400}
+.hook{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:1.5rem 2rem;margin:2rem 0;max-width:750px;text-align:center;font-size:clamp(1.05rem,2vw,1.3rem)}
+.hook em{color:var(--warm);font-style:normal;font-weight:500}
+.remaining{font-size:clamp(1.4rem,3.5vw,2.2rem);color:var(--accent);font-weight:300;text-align:center;margin-top:.8rem;font-variant-numeric:tabular-nums}
+
+/* Timeline bar within slide */
+.day-bar{width:100%;max-width:850px;height:36px;background:rgba(255,255,255,.03);border-radius:18px;margin:2rem auto;overflow:hidden;position:relative;border:1px solid var(--border)}
+.day-fill{height:100%;border-radius:18px;transition:width .8s ease;position:relative}
+.day-fill::after{content:'';position:absolute;right:-1px;top:0;bottom:0;width:3px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5)}
+.day-markers{display:flex;justify-content:space-between;max-width:850px;width:100%;margin:0 auto;padding:0 2px}
+.day-markers span{font-size:.7rem;color:var(--dim)}
+
+/* Emoji/icon for era */
+.era-icon{font-size:clamp(3rem,7vw,5rem);margin-bottom:1.2rem;text-align:center}
+
+/* Context card */
+.ctx{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:750px;width:100%;margin:2rem auto}
+.ctx-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;text-align:center}
+.ctx-card .label{font-size:.8rem;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem}
+.ctx-card .val{font-size:1.4rem;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:400}
+
+/* Final seconds */
+.final-tl{max-width:700px;width:100%;margin:1.5rem auto;position:relative;padding-left:2rem}
+.final-tl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),var(--red))}
+.ftl-item{position:relative;padding:.5rem 0 .5rem 1.5rem;font-size:1.05rem}
+.ftl-item::before{content:'';position:absolute;left:-.4rem;top:.7rem;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.ftl-item .ft{color:var(--warm);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* Scroll cue */
+.scroll-cue{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);font-size:.95rem;color:var(--dim);text-align:center;animation:bob 2s ease-in-out infinite}
+.scroll-cue span{display:block;font-size:1.3rem;margin-top:.3rem}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0);opacity:.3}50%{transform:translateX(-50%) translateY(5px);opacity:1}}
+
+/* Quote */
+.quote{font-style:italic;color:var(--dim);font-size:clamp(1rem,2vw,1.25rem);line-height:1.8;max-width:700px;text-align:center;margin:2.5rem auto}
+.quote-a{color:var(--accent);font-style:normal;margin-top:.7rem;font-size:1rem}
+
+/* Responsive */
+@media(max-width:600px){
+  .slide{padding:3rem 1.2rem}
+  .ctx{grid-template-columns:1fr}
+  #clock-display{right:8px;font-size:.7rem;padding:.2rem .5rem}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"><div id="progress-fill"></div></div>
+<div id="clock-display"><span class="t">00:00:00</span></div>
+
+<!-- ===== SLIDE 1: INTRO ===== -->
+<div class="slide visible" id="s0" data-pct="0" data-time="00:00:00">
+  <h1 class="fade">One Day on Earth</h1>
+  <p class="desc fade">What if the entire <em>4.571 billion year</em> history of our planet were compressed into a single 24-hour day?</p>
+  <div class="hook fade">
+    Every second = <em>52,905 years</em>.<br>
+    Every minute = <em>3.17 million years</em>.<br>
+    Every hour = <em>190 million years</em>.
+  </div>
+  <p class="desc fade" style="margin-top:1rem">It's midnight. Earth has just formed.<br>The clock starts now.</p>
+  <div class="scroll-cue fade">scroll to begin<span>&darr;</span></div>
+</div>
+
+<!-- ===== SLIDE 2: 00:00 EARTH FORMS ===== -->
+<div class="slide" id="s1" data-pct="0" data-time="00:00:00">
+  <div class="era-icon fade">&#127759;</div>
+  <div class="clock fade">00:00:00</div>
+  <div class="clock-sub fade">4.571 billion years ago &mdash; 24 hours remain</div>
+  <h2 class="fade">Earth Forms</h2>
+  <div class="era fade" style="color:var(--red)">Hadean Eon</div>
+  <p class="desc fade">A swirling disc of gas and dust collapses. Rocks collide and accrete. The surface is a <em>molten ocean of magma</em> at 2,000&deg;C. There is no atmosphere you could breathe, no water, no solid ground. Just a glowing ball of liquid rock orbiting a young Sun.</p>
+  <div class="day-bar fade"><div class="day-fill" style="width:0.1%;background:var(--red)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 3: 00:22 THE MOON ===== -->
+<div class="slide" id="s2" data-pct="1.6" data-time="00:22:22">
+  <div class="era-icon fade">&#127769;</div>
+  <div class="clock fade">00:22:22</div>
+  <div class="clock-sub fade">4.5 billion years ago &mdash; 23 hours 37 minutes remain</div>
+  <h2 class="fade">The Moon Is Born</h2>
+  <div class="era fade" style="color:var(--red)">Hadean Eon</div>
+  <p class="desc fade">A Mars-sized protoplanet called <em>Theia</em> slams into Earth at 40,000 km/h. The collision vaporizes both worlds. Debris forms a ring around the shattered Earth, which coalesces into the Moon in just hours. The impact tilts Earth's axis 23.5&deg; &mdash; the reason we have seasons.</p>
+  <div class="hook fade">22 minutes into the day. The Moon already exists. It will slowly drift away for the rest of the day.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:1.6%;background:var(--red)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 4: 02:59 FIRST LIFE ===== -->
+<div class="slide" id="s3" data-pct="12.5" data-time="02:59:48">
+  <div class="era-icon fade">&#129440;</div>
+  <div class="clock fade">02:59:48</div>
+  <div class="clock-sub fade">4.0 billion years ago &mdash; 21 hours remain</div>
+  <h2 class="fade">First Life</h2>
+  <div class="era fade" style="color:var(--orange)">Archean Eon</div>
+  <p class="desc fade">In warm hydrothermal vents on the ocean floor, molecules begin to <em>self-replicate</em>. The first single-celled organisms appear &mdash; simple prokaryotes. No eyes, no brains, no movement. Just chemistry that learned to copy itself. This is the most important event in Earth's history.</p>
+  <div class="hook fade">Life appears <em>before 3 AM</em>. It has the rest of the day ahead of it &mdash; but it won't do much for a very, very long time.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:12.5%;background:var(--orange)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 5: 03:00–11:24 THE BORING BILLIONS ===== -->
+<div class="slide" id="s4" data-pct="47.5" data-time="03:00 &ndash; 11:24">
+  <div class="era-icon fade">&#129516;</div>
+  <div class="clock fade" style="font-size:clamp(2rem,6vw,4rem)">03:00 &mdash; 11:24</div>
+  <div class="clock-sub fade">4.0 to 2.4 billion years ago &mdash; 8 hours 24 minutes</div>
+  <h2 class="fade">The Boring Billion</h2>
+  <div class="era fade" style="color:var(--orange)">Archean Eon</div>
+  <p class="desc fade">For <em>over a third of the entire day</em>, life is nothing but single-celled bacteria floating in the ocean. No animals. No plants. No oxygen. Just microbes, dividing and drifting, for <em>1.6 billion years</em>.</p>
+  <div class="ctx fade">
+    <div class="ctx-card"><div class="label">Duration</div><div class="val">8h 24m</div></div>
+    <div class="ctx-card"><div class="label">Real years</div><div class="val">1.6 billion</div></div>
+    <div class="ctx-card"><div class="label">Complexity</div><div class="val">Single cells</div></div>
+    <div class="ctx-card"><div class="label">Oxygen</div><div class="val">~0%</div></div>
+  </div>
+  <div class="hook fade">If you watched the entire day in real-time, you'd be <em>bored out of your mind</em> until almost lunchtime.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:47.5%;background:linear-gradient(90deg,var(--orange),var(--green))"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 6: 11:24 GREAT OXIDATION ===== -->
+<div class="slide" id="s5" data-pct="47.5" data-time="11:24:08">
+  <div class="era-icon fade">&#128168;</div>
+  <div class="clock fade">11:24:08</div>
+  <div class="clock-sub fade">2.4 billion years ago &mdash; 12 hours 36 minutes remain</div>
+  <h2 class="fade">The Great Oxidation Event</h2>
+  <div class="era fade" style="color:var(--green)">Proterozoic Eon</div>
+  <p class="desc fade">Cyanobacteria have been quietly producing oxygen for billions of years. Now it overwhelms Earth's chemical sinks and <em>floods the atmosphere</em>. Oxygen is toxic to almost all existing life. This is the <em>first mass extinction</em> &mdash; caused by bacteria's waste product.</p>
+  <div class="hook fade">The air you breathe exists because of a <em>bacterial apocalypse</em> at 11:24 AM.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:47.5%;background:var(--green)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 7: 12:58 COMPLEX CELLS ===== -->
+<div class="slide" id="s6" data-pct="54.1" data-time="12:58:35">
+  <div class="era-icon fade">&#128300;</div>
+  <div class="clock fade">12:58:35</div>
+  <div class="clock-sub fade">2.1 billion years ago &mdash; 11 hours remain</div>
+  <h2 class="fade">Complex Cells Appear</h2>
+  <div class="era fade" style="color:var(--green)">Proterozoic Eon</div>
+  <p class="desc fade">A bacterium gets swallowed by another cell &mdash; but instead of being digested, it becomes a <em>mitochondrion</em>. This endosymbiosis creates the first eukaryotic cell &mdash; cells with nuclei, organelles, and vastly more complexity. Every animal, plant, and fungus alive today descends from this merger.</p>
+  <div class="hook fade">It's almost <em>1 PM</em>. The day is more than half over. And we've just gotten to cells with a nucleus.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:54.1%;background:var(--green)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 8: 18:45 MULTICELLULAR ===== -->
+<div class="slide" id="s7" data-pct="78.1" data-time="18:45:05">
+  <div class="era-icon fade">&#129704;</div>
+  <div class="clock fade">18:45:05</div>
+  <div class="clock-sub fade">1 billion years ago &mdash; 5 hours 15 minutes remain</div>
+  <h2 class="fade">First Multicellular Life</h2>
+  <div class="era fade" style="color:var(--green)">Proterozoic Eon</div>
+  <p class="desc fade">Cells begin cooperating. Specializing. Building bodies. The first multicellular organisms appear &mdash; simple algae, sponge-like creatures. Still no brains, no eyes, no movement. But for the first time, <em>cells are working together</em>.</p>
+  <div class="hook fade">It's almost <em>7 PM</em>. You could have spent the entire workday watching &mdash; and nothing more complex than a single cell existed.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:78.1%;background:var(--green)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 9: 21:09 CAMBRIAN EXPLOSION ===== -->
+<div class="slide" id="s8" data-pct="88.2" data-time="21:09:33">
+  <div class="era-icon fade">&#129438;</div>
+  <div class="clock fade">21:09:33</div>
+  <div class="clock-sub fade">541 million years ago &mdash; 2 hours 50 minutes remain</div>
+  <h2 class="fade">The Cambrian Explosion</h2>
+  <div class="era fade" style="color:var(--accent)">Phanerozoic Eon &mdash; Paleozoic Era</div>
+  <p class="desc fade">In a burst lasting just <em>~15 minutes</em> of our day, nearly every major animal body plan appears. Eyes evolve. Predators appear. Shells, claws, spines &mdash; an arms race erupts in the oceans. Life goes from simple blobs to the ancestors of every complex animal alive today.</p>
+  <div class="ctx fade">
+    <div class="ctx-card"><div class="label">Duration</div><div class="val">~15 min</div></div>
+    <div class="ctx-card"><div class="label">Real years</div><div class="val">~25 million</div></div>
+    <div class="ctx-card"><div class="label">New phyla</div><div class="val">~20+</div></div>
+    <div class="ctx-card"><div class="label">Key innovation</div><div class="val">Eyes</div></div>
+  </div>
+  <div class="hook fade">After 21 hours of waiting, <em>everything happens at once</em>.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:88.2%;background:var(--accent)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 10: 21:50 LIFE MOVES TO LAND ===== -->
+<div class="slide" id="s9" data-pct="91.0" data-time="21:50">
+  <div class="era-icon fade">&#127793;</div>
+  <div class="clock fade">21:50:00</div>
+  <div class="clock-sub fade">~430 million years ago &mdash; 2 hours 10 minutes remain</div>
+  <h2 class="fade">Life Invades the Land</h2>
+  <div class="era fade" style="color:var(--accent)">Paleozoic Era</div>
+  <p class="desc fade">Plants leave the water first. Then arthropods follow. By <em>21:58</em>, the first forests appear. Insects take flight by <em>22:08</em>. The first tetrapods &mdash; four-legged vertebrates &mdash; crawl onto land around <em>22:02</em>. Amphibians lead to reptiles.</p>
+  <div class="ctx fade">
+    <div class="ctx-card"><div class="label">First land plants</div><div class="val">21:31</div></div>
+    <div class="ctx-card"><div class="label">First insects</div><div class="val">21:54</div></div>
+    <div class="ctx-card"><div class="label">First forests</div><div class="val">21:58</div></div>
+    <div class="ctx-card"><div class="label">First reptiles</div><div class="val">22:10</div></div>
+  </div>
+  <div class="hook fade">For 21 hours and 50 minutes, all of the land was <em>completely barren</em>. Nothing but rock.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:91%;background:var(--accent)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 11: 22:46 DINOSAURS ===== -->
+<div class="slide" id="s10" data-pct="94.9" data-time="22:46:33">
+  <div class="era-icon fade">&#129430;</div>
+  <div class="clock fade">22:46:33</div>
+  <div class="clock-sub fade">233 million years ago &mdash; 1 hour 13 minutes remain</div>
+  <h2 class="fade">The Age of Dinosaurs Begins</h2>
+  <div class="era fade" style="color:var(--purple)">Mesozoic Era</div>
+  <p class="desc fade">The first dinosaurs are small, dog-sized creatures. But they'll dominate the planet for the next <em>53 minutes</em> &mdash; one of the longest successful runs in Earth's history. T. rex won't appear until <em>23:38</em>, just minutes before the end.</p>
+  <div class="ctx fade">
+    <div class="ctx-card"><div class="label">Dinosaur reign</div><div class="val">53 minutes</div></div>
+    <div class="ctx-card"><div class="label">Real years</div><div class="val">167 million</div></div>
+    <div class="ctx-card"><div class="label">First birds</div><div class="val">23:09</div></div>
+    <div class="ctx-card"><div class="label">First flowers</div><div class="val">23:19</div></div>
+  </div>
+  <div class="hook fade">Dinosaurs get <em>53 minutes</em>. All of human existence gets <em>6 seconds</em>.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:94.9%;background:var(--purple)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 12: 23:39 ASTEROID ===== -->
+<div class="slide" id="s11" data-pct="98.6" data-time="23:39:12">
+  <div class="era-icon fade">&#9732;&#65039;</div>
+  <div class="clock fade">23:39:12</div>
+  <div class="clock-sub fade">66 million years ago &mdash; 20 minutes 48 seconds remain</div>
+  <h2 class="fade">The Asteroid Strikes</h2>
+  <div class="era fade" style="color:var(--red)">K-Pg Extinction Event</div>
+  <p class="desc fade">A 12 km asteroid hits the Yucat&aacute;n Peninsula at 72,000 km/h. The impact releases <em>10 billion Hiroshima bombs</em> of energy. A wall of fire circles the globe. Dust blocks the Sun for months. 75% of all species go extinct &mdash; including every non-avian dinosaur. In an instant, 53 minutes of dominance is erased.</p>
+  <div class="hook fade">The asteroid impact &mdash; the most famous event in Earth's history &mdash; happens at <em>11:39 PM</em>. Most of the day is already over.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:98.6%;background:var(--red)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 13: 23:59:07 GENUS HOMO ===== -->
+<div class="slide" id="s12" data-pct="99.94" data-time="23:59:07">
+  <div class="era-icon fade">&#129492;</div>
+  <div class="clock fade">23:59:07</div>
+  <div class="clock-sub fade">2.8 million years ago &mdash; 53 seconds remain</div>
+  <h2 class="fade">The First Humans</h2>
+  <div class="era fade" style="color:var(--warm)">Cenozoic Era &mdash; Quaternary</div>
+  <p class="desc fade">The genus <em>Homo</em> appears in Africa. Homo habilis makes the first stone tools. Walking upright, with brains growing larger each generation. After 23 hours and 59 minutes of Earth's history, something new is happening &mdash; an animal is starting to <em>think</em>.</p>
+  <div class="remaining fade">53 seconds remain until midnight</div>
+  <div class="hook fade">The entire history of the <em>Homo</em> genus &mdash; every human species that ever lived &mdash; fits in the <em>last 53 seconds</em>.</div>
+  <div class="day-bar fade"><div class="day-fill" style="width:99.94%;background:var(--warm)"></div></div>
+  <div class="day-markers"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+</div>
+
+<!-- ===== SLIDE 14: 23:59:54 HOMO SAPIENS ===== -->
+<div class="slide" id="s13" data-pct="99.9993" data-time="23:59:54.3">
+  <div class="era-icon fade">&#128104;&#8205;&#128105;&#8205;&#128103;</div>
+  <div class="clock fade">23:59:54.3</div>
+  <div class="clock-sub fade">300,000 years ago &mdash; 5.7 seconds remain</div>
+  <h2 class="fade">Our Species Appears</h2>
+  <div class="era fade" style="color:var(--warm)">Homo sapiens</div>
+  <p class="desc fade"><em>Homo sapiens</em> walks the Earth. We paint cave walls. We bury our dead. We tell stories around fires. We migrate out of Africa and spread across every continent. We survive ice ages, volcanic winters, and extinction-level threats &mdash; all in <em>less than 6 seconds</em>.</p>
+  <div class="remaining fade">5.7 seconds remain until midnight</div>
+  <div class="hook fade">Every human being who has ever lived &mdash; every ancestor, every culture, every language &mdash; exists in the <em>last 5.7 seconds</em> of this day.</div>
+</div>
+
+<!-- ===== SLIDE 15: 23:59:59.81 ALL OF CIVILIZATION ===== -->
+<div class="slide" id="s14" data-pct="100" data-time="23:59:59.81">
+  <div class="era-icon fade">&#127963;&#65039;</div>
+  <div class="clock fade" style="color:var(--red)">23:59:59.81</div>
+  <div class="clock-sub fade">The last 0.19 seconds &mdash; all of recorded history</div>
+  <h2 class="fade">Everything You've Ever Learned</h2>
+  <div class="era fade" style="color:var(--red)">All of Human Civilization</div>
+  <p class="desc fade">The invention of writing. The pyramids. Every empire. Every war. Every religion. Every scientific discovery. Democracy. The printing press. The industrial revolution. Two world wars. The moon landing. The internet. <em>All of it</em> &mdash; in the last <em>0.19 seconds</em>.</p>
+
+  <div class="final-tl fade">
+    <div class="ftl-item"><span class="ft">23:59:59.810</span> &mdash; Agriculture &amp; first cities (~10,000 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.915</span> &mdash; Pyramids of Giza (~4,500 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.940</span> &mdash; Ancient Greece (~2,500 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.962</span> &mdash; Roman Empire / Christ (~2,000 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.990</span> &mdash; Renaissance (~500 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.995</span> &mdash; Industrial Revolution (~250 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.9986</span> &mdash; World War II (~80 ya)</div>
+    <div class="ftl-item"><span class="ft">23:59:59.9994</span> &mdash; The internet (~30 ya)</div>
+    <div class="ftl-item"><span class="ft">24:00:00.000</span> &mdash; <em>Now</em></div>
+  </div>
+
+  <div class="hook fade" style="margin-top:1.5rem">
+    Your entire life is roughly <em>0.0000015 seconds</em> of this day.<br>
+    A single blink takes longer.
+  </div>
+
+  <div class="quote fade" style="margin-top:2rem">
+    "The Earth is 4.5 billion years old. Scaled to 24 hours, humans have been here for 3 seconds. In that time, we've managed to destroy 80% of the world's forests, put 200,000 species on the verge of extinction, and fundamentally altered the chemistry of the atmosphere."
+    <div class="quote-a">&mdash; based on data from WWF Living Planet Report</div>
+  </div>
+
+  <p class="fade" style="color:var(--dim);font-size:.75rem;text-align:center;margin-top:3rem">
+    All times calculated from Earth age of 4.571 Gyr. Scale: 52,905 years per second.<br>
+    <span style="color:var(--accent)">time.nixfred.tech</span>
+  </p>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const slides=document.querySelectorAll('.slide');
+const progressFill=document.getElementById('progress-fill');
+const clockEl=document.querySelector('#clock-display .t');
+const slideMap=new Map();
+slides.forEach((s,i)=>slideMap.set(s,i));
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      const pct=e.target.dataset.pct||'0';
+      const time=e.target.dataset.time||'00:00:00';
+      progressFill.style.width=pct+'%';
+      clockEl.textContent=time;
+    }
+  });
+},{threshold:.2,rootMargin:'-40px 0px'});
+slides.forEach(s=>obs.observe(s));
+
+})();
+</script>
+</body>
+</html>
